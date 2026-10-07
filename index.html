@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5c">
+<title>ورشات اللقاء السنوي</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#1d2b27;--muted:#6b7a75;--line:#e1e7e4;--brand:#1f6f5c;--brand2:#e8f3ef;--warn:#c98a12;--warnbg:#fdf4e1;--bad:#b3392f;--badbg:#fbe9e7;--ok:#2e7d4f}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Tajawal',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.7}
+.wrap{max-width:720px;margin:0 auto;padding:12px 16px 110px}
+.top{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;padding:calc(12px + env(safe-area-inset-top, 0px)) 16px 12px}
+.top .in{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top h1{font-size:17px;margin:0;font-weight:700}
+.timer{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;transition:background .3s}
+.timer.warn{background:var(--warn)}
+.timer.over{background:var(--bad)}
+.bar{height:5px;background:var(--line)}
+.bar i{display:block;height:100%;background:#7cc4ad;transition:width .3s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+h2{font-size:20px;margin:0 0 6px;line-height:1.6}
+.muted{color:var(--muted);font-size:15px}
+.chip{display:inline-block;background:var(--brand2);color:var(--brand);border-radius:999px;padding:2px 12px;font-size:14px;font-weight:700}
+label.step{display:flex;gap:10px;align-items:flex-start;font-weight:700;margin-bottom:4px}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:14px;margin-top:2px}
+.hint{color:var(--muted);font-size:15px;margin:0 38px 10px 0}
+textarea,input[type=text]{width:100%;font:inherit;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:120px;resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:var(--brand)}
+input:disabled{background:var(--bg)}
+.count{font-size:13px;color:var(--muted);margin-top:2px}
+.count.low{color:var(--bad)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts.scale .opt{flex:1;font-size:20px;font-weight:700}
+.scale-l{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:4px}
+.opt{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 16px;font:inherit;cursor:pointer;color:var(--ink)}
+.opt.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:13px 20px;cursor:pointer;background:var(--brand);color:#fff}
+.btn.sec{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+.btn:disabled{opacity:.45;cursor:default}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px))}
+.nav .in{max-width:720px;margin:0 auto;display:flex;gap:10px}
+.nav .btn{flex:1}
+.msg{padding:12px 14px;border-radius:10px;margin:12px 0;font-size:15px}
+.msg.bad{background:var(--badbg);color:var(--bad)}
+.msg.warn{background:var(--warnbg);color:#7a5308}
+.rev{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.rev:last-child{border-bottom:0}
+.st{flex:none;text-align:left;font-weight:700}
+.st.good{color:var(--ok)} .st.bad{color:var(--bad)}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.dot{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
+.dot.full{background:#d8efe6;border-color:#9fd3bf}
+.dot.cur{border-color:var(--brand);border-width:2.5px}
+.center{text-align:center}
+.spin{width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:s 1s linear infinite;margin:60px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="top"></div>
+<div class="wrap" id="app"><div class="spin"></div></div>
+<div id="nav"></div>
+
+<script>
+// ← الصق هنا رابط Apps Script الذي ينتهي بـ /exec
+const API = 'https://script.google.com/macros/s/AKfycbzSeKte6nKDJCy9cZeLTiha-mIuoB7nLXBNWJ7UyhjFqJqltsVHgVtZlpV7LPIqcAQQqQ/exec';
+const INITIAL_CODE = (new URLSearchParams(location.search).get('w') || '').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+let W = null, S = null, saveTimer = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function call_(req) {
+  let r;
+  try { r = await req; } catch (e) { throw new Error('تعذّر الاتصال بالخادم. تحققوا من الإنترنت ثم أعيدوا المحاولة.'); }
+  const j = await r.json().catch(() => null);
+  if (!j) throw new Error('ردّ غير متوقع من الخادم.');
+  if (!j.ok) throw new Error(j.error || 'خطأ في الخادم');
+  return j.data;
+}
+// نفس أسماء الدوال السابقة، لكن عبر الإنترنت بدل google.script.run
+function run(fn, ...a) {
+  if (fn === 'getWorkshop') return call_(fetch(API + '?action=workshop&code=' + encodeURIComponent(a[0])));
+  const body = fn === 'startGroup' ? { action: 'start', code: a[0], rapporteur: a[1] }
+             : fn === 'submitGroup' ? Object.assign({ action: 'submit' }, a[0]) : null;
+  if (!body) return Promise.reject(new Error('طلب غير معروف'));
+  return call_(fetch(API, { method: 'POST', body: JSON.stringify(body) }))
+    .then(d => fn === 'startGroup' ? d.groupId : d);
+}
+
+/* ---------- الحفظ المحلي ---------- */
+const KEY = c => 'wsapp_v1_' + c;
+function loadState(c) { try { return JSON.parse(localStorage.getItem(KEY(c)) || 'null'); } catch (e) { return null; } }
+function saveState() { if (!W || !S) return; try { localStorage.setItem(KEY(W.code), JSON.stringify(S)); } catch (e) {} }
+function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 400); }
+function clearState() { try { localStorage.removeItem(KEY(W.code)); } catch (e) {} }
+
+/* ---------- أدوات العرض ---------- */
+function mmss(s) { s = Math.abs(Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function msg(id, html, cls) { const el = $(id); if (el) el.innerHTML = html ? `<div class="msg ${cls || 'bad'}">${html}</div>` : ''; }
+function nav(btns) {
+  $('nav').innerHTML = btns.length ? `<div class="nav"><div class="in">${btns.map(b =>
+    `<button class="btn ${b.sec ? 'sec' : ''}" ${b.dis ? 'disabled' : ''} onclick="${b.f}">${b.t}</button>`).join('')}</div></div>` : '';
+}
+function busy() { document.querySelectorAll('.nav .btn').forEach(b => b.disabled = true); }
+
+/* ---------- التحقق (مطابق للخادم) ---------- */
+function stepIssue(st, v) {
+  v = String(v || '').trim();
+  if (!v) return st.required ? 'لم تُملأ' : '';
+  if (st.type === 'list') return st.options.indexOf(v) < 0 ? 'اختيار غير مقبول' : '';
+  if (st.min && v.length < st.min) return 'قصيرة';
+  return '';
+}
+function qIssues(q) { const a = S.answers[q.id] || {}; return q.steps.filter(st => stepIssue(st, a[st.order])).length; }
+function qDone(q) { return qIssues(q) === 0; }
+function evalIssue(e) {
+  const v = S.evals[e.id];
+  if (e.type === 'scale') return (v == null || v === '') && e.required;
+  return e.required && !String(v || '').trim();
+}
+
+/* ---------- البدء ---------- */
+if (INITIAL_CODE) openWorkshop(INITIAL_CODE); else showCode();
+
+function showCode(err) {
+  W = null; $('top').innerHTML = ''; $('nav').innerHTML = '';
+  $('app').innerHTML = `<div class="card center" style="margin-top:40px">
+    <h2>ورشات اللقاء السنوي</h2>
+    <p class="muted">امسحوا كود QR الخاص بورشتكم بكاميرا الهاتف، أو اكتبوا رمز الورشة هنا.</p>
+    ${err ? `<div class="msg bad">${esc(err)}</div>` : ''}
+    <input type="text" id="code" placeholder="رمز الورشة" autocomplete="off" style="text-align:center;direction:ltr;text-transform:uppercase;font-size:20px;letter-spacing:2px">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="openWorkshop($('code').value)">دخول</button></div>`;
+  $('code').addEventListener('keydown', e => { if (e.key === 'Enter') openWorkshop($('code').value); });
+}
+
+async function openWorkshop(code, preloaded) {
+  code = String(code || '').trim().toUpperCase();
+  if (!code) return showCode('اكتبوا رمز الورشة');
+  if (preloaded) W = preloaded;
+  else {
+    $('app').innerHTML = '<div class="spin"></div>';
+    try { W = await run('getWorkshop', code); } catch (e) { return showCode(e.message); }
+  }
+  if (new URLSearchParams(location.search).get('w') !== W.code) {
+    try { history.replaceState(null, '', '?w=' + encodeURIComponent(W.code)); } catch (e) {}
+  }
+  S = loadState(W.code);
+  if (S && S.submitted) return showDone();
+  if (!S || !S.groupId) S = { groupId: null, rapporteur: '', answers: {}, evals: {}, time: {}, idx: 0, screen: 'group' };
+  S.idx = Math.min(S.idx || 0, W.questions.length - 1);
+  render();
+}
+
+function render() {
+  ({ group: renderGroup, q: renderQ, eval: renderEval, review: renderReview }[S.screen] || renderGroup)();
+  window.scrollTo(0, 0);
+}
+function go(i) { if (i < 0 || i >= W.questions.length) return; S.idx = i; S.screen = 'q'; saveState(); render(); }
+function goScreen(s) { S.screen = s; saveState(); render(); }
+
+function setTop(q) {
+  const pct = S.groupId ? Math.round(W.questions.filter(qDone).length / W.questions.length * 100) : 0;
+  $('top').innerHTML = `<div class="top"><div class="in"><h1>${esc(W.name)}</h1>${q ? '<span class="timer" id="timer"></span>' : ''}</div></div>
+    <div class="bar"><i id="pbar" style="width:${pct}%"></i></div>`;
+  if (q) updTimer();
+}
+
+/* ---------- شاشة بيانات المجموعة ---------- */
+function renderGroup() {
+  setTop();
+  const total = W.questions.reduce((s, q) => s + q.minutes, 0);
+  $('app').innerHTML = `<div class="card">
+    <span class="chip">${esc(W.name)}</span>
+    <h2 style="margin-top:10px">بيانات المجموعة</h2>
+    <p class="muted">${W.questions.length} أسئلة · المدة التقديرية ${total} دقيقة</p>
+    <label class="step" for="rap">اسم المقرّر</label>
+    <input type="text" id="rap" value="${esc(S.rapporteur)}" ${S.groupId ? 'disabled' : ''} placeholder="الاسم واللقب">
+    <div id="gmsg"></div></div>`;
+  $('rap').addEventListener('keydown', e => { if (e.key === 'Enter') beginGroup(); });
+  nav([{ t: S.groupId ? 'متابعة' : 'بدء الورشة', f: 'beginGroup()' }]);
+}
+async function beginGroup() {
+  if (S.groupId) return goScreen('q');
+  const rap = $('rap').value.trim().replace(/\s+/g, ' ');
+  if (rap.length < 3) return msg('gmsg', 'اكتبوا اسم المقرّر كاملاً');
+  busy();
+  try {
+    S.groupId = await run('startGroup', W.code, rap);
+    S.rapporteur = rap;
+  } catch (e) { render(); return msg('gmsg', esc(e.message)); }
+  goScreen('q');
+}
+
+/* ---------- شاشة السؤال ---------- */
+function renderQ() {
+  const q = W.questions[S.idx];
+  const a = S.answers[q.id] || (S.answers[q.id] = {});
+  setTop(q);
+  let h = `<div class="dots">${W.questions.map((x, i) =>
+      `<button class="dot ${qDone(x) ? 'full' : ''} ${i === S.idx ? 'cur' : ''}" onclick="go(${i})">${i + 1}</button>`).join('')}</div>
+    <div class="card"><div class="muted">السؤال ${S.idx + 1} من ${W.questions.length} · <span class="chip">${esc(q.tplName)}</span></div>
+    <h2 style="margin-top:8px">${esc(q.text)}</h2></div>`;
+  q.steps.forEach(st => {
+    const v = a[st.order] || '';
+    h += `<div class="card"><label class="step"><span class="num">${st.order}</span><span>${esc(st.title)}${st.required ? '' : ' <span class="muted">(اختياري)</span>'}</span></label>
+      ${st.hint ? `<p class="hint">${esc(st.hint)}</p>` : ''}`;
+    if (st.type === 'list') {
+      h += `<div class="opts">${st.options.map(o =>
+        `<button class="opt ${v === o ? 'on' : ''}" data-q="${esc(q.id)}" data-s="${st.order}" data-v="${esc(o)}" onclick="setOpt(this)">${esc(o)}</button>`).join('')}</div>`;
+    } else {
+      h += `<textarea data-q="${esc(q.id)}" data-s="${st.order}" oninput="onTxt(this)">${esc(v)}</textarea>
+        ${st.min ? `<div class="count" id="c_${esc(q.id)}_${st.order}"></div>` : ''}`;
+    }
+    h += '</div>';
+  });
+  $('app').innerHTML = h;
+  q.steps.forEach(st => { if (st.min && st.type !== 'list') updCount(q.id, st); });
+  const last = S.idx === W.questions.length - 1;
+  nav([{ t: 'السابق', f: 'go(S.idx-1)', sec: 1, dis: S.idx === 0 },
+       { t: last ? 'التقييم العام' : 'التالي', f: last ? "goScreen('eval')" : 'go(S.idx+1)' }]);
+}
+function stepOf(qid, s) { return W.questions.find(x => x.id === qid).steps.find(x => String(x.order) === String(s)); }
+function onTxt(el) {
+  const qid = el.dataset.q, s = el.dataset.s;
+  (S.answers[qid] = S.answers[qid] || {})[s] = el.value;
+  const st = stepOf(qid, s);
+  if (st.min) updCount(qid, st);
+  refreshProgress(); saveSoon();
+}
+function setOpt(el) {
+  const qid = el.dataset.q, s = el.dataset.s, a = (S.answers[qid] = S.answers[qid] || {});
+  a[s] = a[s] === el.dataset.v ? '' : el.dataset.v;
+  el.parentNode.querySelectorAll('.opt').forEach(b => b.classList.toggle('on', b.dataset.v === a[s]));
+  refreshProgress(); saveSoon();
+}
+function updCount(qid, st) {
+  const el = $('c_' + qid + '_' + st.order); if (!el) return;
+  const len = String((S.answers[qid] || {})[st.order] || '').trim().length;
+  const low = len > 0 && len < st.min;
+  el.className = 'count' + (low ? ' low' : '');
+  el.textContent = low ? `${len} / ${st.min} حرفاً على الأقل` : (len ? `${len} حرفاً` : '');
+}
+function refreshProgress() {
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('full', qDone(W.questions[i])));
+  const b = $('pbar'); if (b) b.style.width = Math.round(W.questions.filter(qDone).length / W.questions.length * 100) + '%';
+}
+
+/* ---------- المؤقت ---------- */
+function updTimer() {
+  const el = $('timer'); if (!el || S.screen !== 'q') return;
+  const q = W.questions[S.idx];
+  const rem = q.minutes * 60 - (S.time[q.id] || 0);
+  el.className = 'timer' + (rem < 0 ? ' over' : rem <= 60 ? ' warn' : '');
+  el.textContent = rem < 0 ? 'انتهى الوقت +' + mmss(rem) : '⏱ ' + mmss(rem);
+}
+setInterval(() => {
+  if (!W || !S || S.screen !== 'q' || document.hidden) return;
+  const q = W.questions[S.idx];
+  S.time[q.id] = (S.time[q.id] || 0) + 1;
+  updTimer();
+  if (S.time[q.id] % 5 === 0) saveState();
+}, 1000);
+
+/* ---------- التقييم العام ---------- */
+function renderEval() {
+  setTop();
+  let h = `<div class="card"><h2>التقييم العام للورشة</h2><p class="muted">رأي المجموعة بالتوافق. ١ = ضعيف جداً، ٥ = ممتاز.</p></div>`;
+  W.evals.forEach((e, i) => {
+    const v = S.evals[e.id];
+    h += `<div class="card"><label class="step"><span class="num">${i + 1}</span><span>${esc(e.text)}${e.required ? '' : ' <span class="muted">(اختياري)</span>'}</span></label>`;
+    if (e.type === 'scale') {
+      h += `<div class="opts scale">${[1, 2, 3, 4, 5].map(n =>
+        `<button class="opt ${String(v) === String(n) ? 'on' : ''}" data-e="${esc(e.id)}" data-v="${n}" onclick="setEval(this)">${n}</button>`).join('')}</div>
+        <div class="scale-l"><span>ضعيف جداً</span><span>ممتاز</span></div>`;
+    } else {
+      h += `<textarea data-e="${esc(e.id)}" oninput="S.evals[this.dataset.e]=this.value;saveSoon()">${esc(v || '')}</textarea>`;
+    }
+    h += '</div>';
+  });
+  $('app').innerHTML = h;
+  nav([{ t: 'السابق', f: 'go(W.questions.length-1)', sec: 1 }, { t: 'المراجعة والإرسال', f: "goScreen('review')" }]);
+}
+function setEval(el) {
+  S.evals[el.dataset.e] = Number(el.dataset.v);
+  el.parentNode.querySelectorAll('.opt').forEach(b => b.classList.toggle('on', b === el));
+  saveSoon();
+}
+
+/* ---------- المراجعة والإرسال ---------- */
+function renderReview() {
+  setTop();
+  let probs = 0;
+  let h = `<div class="card"><h2>المراجعة قبل الإرسال</h2>
+    <p class="muted">المقرّر: ${esc(S.rapporteur)}</p></div><div class="card">`;
+  W.questions.forEach((q, i) => {
+    const n = qIssues(q); probs += n;
+    const t = q.text.length > 80 ? q.text.slice(0, 80) + '…' : q.text;
+    h += `<div class="rev" onclick="go(${i})"><span><b>${i + 1}.</b> ${esc(t)}<br>
+      <small class="muted">الوقت: ${Math.round((S.time[q.id] || 0) / 60)} من ${q.minutes} د</small></span>
+      <span class="st ${n ? 'bad' : 'good'}">${n ? '⚠ ' + n + ' ناقصة' : '✓'}</span></div>`;
+  });
+  const en = W.evals.filter(evalIssue).length; probs += en;
+  h += `<div class="rev" onclick="goScreen('eval')"><span><b>التقييم العام</b></span>
+    <span class="st ${en ? 'bad' : 'good'}">${en ? '⚠ ' + en + ' ناقص' : '✓'}</span></div></div><div id="rmsg"></div>`;
+  $('app').innerHTML = h;
+  msg('rmsg', probs ? 'أكملوا العناصر المعلّمة بـ ⚠ قبل الإرسال. اضغطوا على أي عنصر للانتقال إليه.'
+                    : 'كل شيء مكتمل. بعد الإرسال لا يمكن تعديل الإجابات.', 'warn');
+  nav([{ t: 'السابق', f: "goScreen('eval')", sec: 1 }, { t: 'إرسال نهائي', f: 'submitAll()', dis: probs > 0 }]);
+}
+
+async function submitAll() {
+  busy();
+  saveState();
+  try {
+    const r = await run('submitGroup', { code: W.code, groupId: S.groupId, answers: S.answers, evals: S.evals, time: S.time });
+    if (!r.ok) { render(); return msg('rmsg', r.errors.map(esc).join('<br>')); }
+    S.submitted = true; saveState(); showDone();
+  } catch (e) {
+    render();
+    msg('rmsg', 'تعذّر الإرسال: ' + esc(e.message) + '<br>إجاباتكم محفوظة على هذا الهاتف، أعيدوا المحاولة بعد التأكد من الاتصال.');
+  }
+}
+
+function showDone() {
+  $('top').innerHTML = `<div class="top"><div class="in"><h1>${esc(W.name)}</h1></div></div>`;
+  $('app').innerHTML = `<div class="card center" style="margin-top:40px"><div style="font-size:52px;color:var(--ok)">✓</div>
+    <h2>تم استلام إجابات مجموعتكم</h2><p class="muted">شكراً لكم على مشاركتكم.<br>المقرّر: ${esc(S.rapporteur)}</p></div>`;
+  nav([{ t: 'تسجيل مجموعة أخرى على هذا الهاتف', f: 'newGroup()', sec: 1 }]);
+}
+function newGroup() { clearState(); S = null; openWorkshop(W.code); }
+</script>
+</body>
+</html>
