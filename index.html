@@ -36,6 +36,9 @@ textarea{min-height:120px;resize:vertical}
 textarea:focus,input:focus{outline:none;border-color:var(--brand)}
 input:disabled{background:var(--bg)}
 .count{font-size:13px;color:var(--muted);margin-top:2px}
+textarea::placeholder{color:#9aa5a1;opacity:1}
+.starthint{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:4px}
+.starthint button{font:inherit;font-size:13px;border:1px solid var(--line);background:#fff;color:var(--brand);border-radius:8px;padding:2px 10px;cursor:pointer}
 .count.low{color:var(--bad)}
 .opts{display:flex;flex-wrap:wrap;gap:8px}
 .opts.scale .opt{flex:1;font-size:20px;font-weight:700}
@@ -216,7 +219,10 @@ function renderQ() {
       h += `<div class="opts">${st.options.map(o =>
         `<button class="opt ${v === o ? 'on' : ''}" data-q="${esc(q.id)}" data-s="${st.order}" data-v="${esc(o)}" onclick="setOpt(this)">${esc(o)}</button>`).join('')}</div>`;
     } else {
-      h += `<textarea data-q="${esc(q.id)}" data-s="${st.order}" oninput="onTxt(this)">${esc(v)}</textarea>
+      h += `<textarea id="ta_${esc(q.id)}_${st.order}" data-q="${esc(q.id)}" data-s="${st.order}" oninput="onTxt(this)"
+        ${st.start ? `placeholder="${esc(st.start)}…"` : ''}>${esc(v)}</textarea>
+        ${st.start ? `<div class="starthint"><span>النص الرمادي بداية مقترحة للإجابة، أكملوها بكلماتكم.</span>
+          <button type="button" onclick="useStart('${esc(q.id)}', ${st.order})">ابدؤوا بها</button></div>` : ''}
         ${st.min ? `<div class="count" id="c_${esc(q.id)}_${st.order}"></div>` : ''}`;
     }
     h += '</div>';
@@ -226,6 +232,13 @@ function renderQ() {
   const last = S.idx === W.questions.length - 1;
   nav([{ t: 'السابق', f: 'go(S.idx-1)', sec: 1, dis: S.idx === 0 },
        { t: last ? 'التقييم العام' : 'التالي', f: last ? "goScreen('eval')" : 'go(S.idx+1)' }]);
+}
+function useStart(qid, s) {
+  const ta = $('ta_' + qid + '_' + s), st = stepOf(qid, s);
+  if (!ta || !st || !st.start) return;
+  if (!ta.value.trim()) ta.value = st.start + ' ';
+  ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  onTxt(ta);
 }
 function stepOf(qid, s) { return W.questions.find(x => x.id === qid).steps.find(x => String(x.order) === String(s)); }
 function onTxt(el) {
